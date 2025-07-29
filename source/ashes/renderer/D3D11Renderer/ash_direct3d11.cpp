@@ -9,6 +9,7 @@
 #include "ashesd3d11_api.hpp"
 
 #include <ashes/common/Exception.hpp>
+#include <cassert>
 
 #include <cstring>
 
@@ -2218,37 +2219,61 @@ namespace ashes::D3D11_NAMESPACE
 #pragma region VK_KHR_device_group
 #ifdef VK_KHR_device_group
 
-	VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(
-		VkDevice device,
-		[[maybe_unused]] VkDeviceGroupPresentCapabilitiesKHR * pDeviceGroupPresentCapabilities )
-	{
-		return reportUnsupported( device, "vkGetDeviceGroupPresentCapabilitiesKHR" );
-	}
+        VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(
+                VkDevice device,
+                VkDeviceGroupPresentCapabilitiesKHR * pDeviceGroupPresentCapabilities )
+        {
+                assert( pDeviceGroupPresentCapabilities );
+                *pDeviceGroupPresentCapabilities =
+                {
+                        VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR,
+                        nullptr,
+                        { 1u, 0u, 0u, 0u },
+                        VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR
+                };
+                return VK_SUCCESS;
+        }
 
-	VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(
-		VkDevice device,
-		[[maybe_unused]] VkSurfaceKHR surface,
-		[[maybe_unused]] VkDeviceGroupPresentModeFlagsKHR * pModes )
-	{
-		return reportUnsupported( device, "vkGetDeviceGroupSurfacePresentModesKHR" );
-	}
+        VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(
+                VkDevice device,
+                [[maybe_unused]] VkSurfaceKHR surface,
+                VkDeviceGroupPresentModeFlagsKHR * pModes )
+        {
+                assert( pModes );
+                *pModes = VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR;
+                return VK_SUCCESS;
+        }
 
-	VkResult VKAPI_CALL vkGetPhysicalDevicePresentRectanglesKHR(
-		VkPhysicalDevice physicalDevice,
-		[[maybe_unused]] VkSurfaceKHR surface,
-		[[maybe_unused]] uint32_t * pRectCount,
-		[[maybe_unused]] VkRect2D * pRects )
-	{
-		return reportUnsupported( physicalDevice, "vkGetPhysicalDevicePresentRectanglesKHR" );
-	}
+        VkResult VKAPI_CALL vkGetPhysicalDevicePresentRectanglesKHR(
+                VkPhysicalDevice physicalDevice,
+                VkSurfaceKHR surface,
+                uint32_t * pRectCount,
+                VkRect2D * pRects )
+        {
+                assert( pRectCount );
+                auto extent = get( surface )->getCapabilities( physicalDevice ).currentExtent;
+                *pRectCount = 1u;
 
-	VkResult VKAPI_CALL vkAcquireNextImage2KHR(
-		VkDevice device,
-		[[maybe_unused]] const VkAcquireNextImageInfoKHR * pAcquireInfo,
-		[[maybe_unused]] uint32_t * pImageIndex )
-	{
-		return reportUnsupported( device, "vkAcquireNextImage2KHR" );
-	}
+                if ( pRects )
+                {
+                        *pRects = { { 0, 0 }, extent };
+                }
+
+                return VK_SUCCESS;
+        }
+
+        VkResult VKAPI_CALL vkAcquireNextImage2KHR(
+                VkDevice device,
+                const VkAcquireNextImageInfoKHR * pAcquireInfo,
+                uint32_t * pImageIndex )
+        {
+                return vkAcquireNextImageKHR( device,
+                        pAcquireInfo->swapchain,
+                        pAcquireInfo->timeout,
+                        pAcquireInfo->semaphore,
+                        pAcquireInfo->fence,
+                        pImageIndex );
+        }
 
 #endif
 #pragma endregion
