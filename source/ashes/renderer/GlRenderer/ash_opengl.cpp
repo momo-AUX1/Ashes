@@ -1765,7 +1765,11 @@ namespace ashes::gl
 		VkMemoryRequirements2 * pMemoryRequirements )
 	{
 		assert( pInfo );
-		assert( pMemoryRequirements );
+
+		if ( !pMemoryRequirements )
+		{
+			return;
+		}
 
 		pMemoryRequirements->memoryRequirements = get( pInfo->buffer )->getMemoryRequirements();
 
@@ -1796,21 +1800,37 @@ namespace ashes::gl
 		VkSparseImageMemoryRequirements2 * pSparseMemoryRequirements )
 	{
 		assert( pInfo );
-		assert( pSparseMemoryRequirementCount );
-
 
 		auto sparseReqs = get( pInfo->image )->getSparseImageMemoryRequirements();
-		*pSparseMemoryRequirementCount = uint32_t( sparseReqs.size() );
 
-		if ( pSparseMemoryRequirements && !sparseReqs.empty() )
+		if ( pSparseMemoryRequirements
+			&& pSparseMemoryRequirementCount )
 		{
-			for ( size_t i = 0; i < sparseReqs.size() && i < *pSparseMemoryRequirementCount; ++i )
+			auto requested = *pSparseMemoryRequirementCount;
+			uint32_t index = 0u;
+
+			for ( auto & req : sparseReqs )
 			{
-				pSparseMemoryRequirements[i].sType = VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2;
-				pSparseMemoryRequirements[i].pNext = nullptr;
-				pSparseMemoryRequirements[i].memoryRequirements = sparseReqs[i];
+				if ( index < requested )
+				{
+					pSparseMemoryRequirements->sType = VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2;
+					pSparseMemoryRequirements->pNext = nullptr;
+					pSparseMemoryRequirements->memoryRequirements = req;
+					++pSparseMemoryRequirements;
+				}
+
+				++index;
 			}
+
+			*pSparseMemoryRequirementCount = std::min( requested, uint32_t( sparseReqs.size() ) );
 		}
+
+		if ( !pSparseMemoryRequirementCount )
+		{
+			return;
+		}
+
+		*pSparseMemoryRequirementCount = uint32_t( sparseReqs.size() );
 	}
 
 	void VKAPI_CALL vkGetPhysicalDeviceFeatures2(
@@ -1901,25 +1921,38 @@ namespace ashes::gl
 	}
 
 	void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(
-		VkPhysicalDevice           physicalDevice,
+		VkPhysicalDevice physicalDevice,
 		uint32_t * pQueueFamilyPropertyCount,
 		VkQueueFamilyProperties2 * pQueueFamilyProperties )
 	{
-		assert( pQueueFamilyPropertyCount );
-
 		auto props = get( physicalDevice )->getQueueFamilyProperties();
 
-		*pQueueFamilyPropertyCount = uint32_t( props.size() );
-
-		if ( pQueueFamilyProperties )
+		if ( pQueueFamilyProperties
+			&& pQueueFamilyPropertyCount )
 		{
-			for ( uint32_t i = 0; i < props.size(); ++i )
+			auto requested = *pQueueFamilyPropertyCount;
+			uint32_t index = 0u;
+
+			for ( auto & prop : props )
 			{
-				pQueueFamilyProperties[i].sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
-				pQueueFamilyProperties[i].pNext = nullptr;
-				pQueueFamilyProperties[i].queueFamilyProperties = props[i];
+				if ( index < requested )
+				{
+					pQueueFamilyProperties->queueFamilyProperties = prop;
+					++pQueueFamilyProperties;
+				}
+
+				++index;
 			}
+
+			*pQueueFamilyPropertyCount = std::min( requested, uint32_t( props.size() ) );
 		}
+
+		if ( !pQueueFamilyPropertyCount )
+		{
+			return;
+		}
+
+		*pQueueFamilyPropertyCount = uint32_t( props.size() );
 	}
 
 	void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties2(
