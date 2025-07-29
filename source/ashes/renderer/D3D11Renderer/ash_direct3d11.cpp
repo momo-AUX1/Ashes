@@ -1682,14 +1682,14 @@ namespace ashes::D3D11_NAMESPACE
         VkPeerMemoryFeatureFlags * pPeerMemoryFeatures )
     {
         assert( pPeerMemoryFeatures );
-        *pPeerMemoryFeatures = 0;
+        *pPeerMemoryFeatures = VkPeerMemoryFeatureFlags{};
     }
 
     void VKAPI_CALL vkCmdSetDeviceMask(
         VkCommandBuffer commandBuffer,
         uint32_t deviceMask )
     {
-		// no op here too 
+		// no op here too
     }
 
     void VKAPI_CALL vkCmdDispatchBase(
@@ -1701,14 +1701,7 @@ namespace ashes::D3D11_NAMESPACE
         uint32_t groupCountY,
         uint32_t groupCountZ )
     {
-
-        uint32_t totalGroupsX = baseGroupX + groupCountX;
-        uint32_t totalGroupsY = baseGroupY + groupCountY;
-        uint32_t totalGroupsZ = baseGroupZ + groupCountZ;
-        
-        get( commandBuffer )->dispatch( totalGroupsX, totalGroupsY, totalGroupsZ );
-        
-        // we should probably have a shader do work here
+        get( commandBuffer )->dispatch( groupCountX, groupCountY, groupCountZ );
     }
 
     VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(
@@ -1717,10 +1710,10 @@ namespace ashes::D3D11_NAMESPACE
         VkPhysicalDeviceGroupProperties * pPhysicalDeviceGroupProperties )
     {
         assert( pPhysicalDeviceGroupCount );
-        
+
         auto physicalDevices = get( instance )->enumeratePhysicalDevices();
         *pPhysicalDeviceGroupCount = uint32_t( physicalDevices.size() );
-        
+
         if ( pPhysicalDeviceGroupProperties )
         {
             for ( size_t i = 0; i < physicalDevices.size() && i < *pPhysicalDeviceGroupCount; ++i )
@@ -1736,7 +1729,7 @@ namespace ashes::D3D11_NAMESPACE
                 pPhysicalDeviceGroupProperties[i].subsetAllocation = VK_FALSE;
             }
         }
-        
+
         return VK_SUCCESS;
     }
 
@@ -1747,18 +1740,18 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pInfo );
         assert( pMemoryRequirements );
-        
+
         pMemoryRequirements->memoryRequirements = get( pInfo->image )->getMemoryRequirements();
-        
-        auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+
+		auto * pNext = pMemoryRequirements->pNext;
         while ( pNext )
         {
-            auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
+            auto * header = static_cast< VkBaseOutStructure * >( pNext );
             switch ( header->sType )
             {
             case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
                 {
-                    auto * dedicatedReqs = reinterpret_cast< VkMemoryDedicatedRequirements * >( pNext );
+                    auto * dedicatedReqs = static_cast< VkMemoryDedicatedRequirements * >( pNext );
                     dedicatedReqs->prefersDedicatedAllocation = VK_FALSE;
                     dedicatedReqs->requiresDedicatedAllocation = VK_FALSE;
                 }
@@ -1777,10 +1770,10 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pInfo );
         assert( pMemoryRequirements );
-        
+
         pMemoryRequirements->memoryRequirements = get( pInfo->buffer )->getMemoryRequirements();
-        
-        auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+
+        auto * pNext = pMemoryRequirements->pNext;
         while ( pNext )
         {
             auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
@@ -1808,10 +1801,10 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pInfo );
         assert( pSparseMemoryRequirementCount );
-        
+
         auto sparseReqs = get( pInfo->image )->getSparseImageMemoryRequirements();
         *pSparseMemoryRequirementCount = uint32_t( sparseReqs.size() );
-        
+
         if ( pSparseMemoryRequirements && !sparseReqs.empty() )
         {
             for ( size_t i = 0; i < sparseReqs.size() && i < *pSparseMemoryRequirementCount; ++i )
@@ -1911,7 +1904,7 @@ namespace ashes::D3D11_NAMESPACE
         assert( pQueueInfo );
         assert( pQueue );
         *pQueue = get( device )->getQueue( pQueueInfo->queueFamilyIndex, pQueueInfo->queueIndex );
-        
+
     }
 
     VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(
@@ -1963,7 +1956,7 @@ namespace ashes::D3D11_NAMESPACE
         assert( descriptorSet );
         assert( descriptorUpdateTemplate );
         assert( pData );
-        
+
 
         get( descriptorUpdateTemplate )->updateDescriptorSet( descriptorSet, pData );
     }    void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(
@@ -1973,7 +1966,7 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pExternalBufferInfo );
         assert( pExternalBufferProperties );
-        
+
         pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
         pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
         pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
@@ -1986,7 +1979,7 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pExternalFenceInfo );
         assert( pExternalFenceProperties );
-        
+
         pExternalFenceProperties->exportFromImportedHandleTypes = 0;
         pExternalFenceProperties->compatibleHandleTypes = 0;
         pExternalFenceProperties->externalFenceFeatures = 0;
@@ -1999,7 +1992,7 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pExternalSemaphoreInfo );
         assert( pExternalSemaphoreProperties );
-        
+
         pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
         pExternalSemaphoreProperties->compatibleHandleTypes = 0;
         pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
@@ -2010,16 +2003,16 @@ namespace ashes::D3D11_NAMESPACE
     {
         assert( pCreateInfo );
         assert( pSupport );
-        
+
 
         pSupport->supported = VK_TRUE;
-        
+
         uint32_t samplerCount = 0;
         uint32_t textureCount = 0;
         uint32_t bufferCount = 0;
         uint32_t storageBufferCount = 0;
         uint32_t storageImageCount = 0;
-        
+
         for ( auto & binding : makeArrayView( pCreateInfo->pBindings, pCreateInfo->bindingCount ) )
         {
             switch ( binding.descriptorType )
@@ -2055,7 +2048,7 @@ namespace ashes::D3D11_NAMESPACE
                 break;
             }
         }
-        
+
 
         if ( samplerCount > 1024 ||
              textureCount > 4096 ||
@@ -2065,7 +2058,7 @@ namespace ashes::D3D11_NAMESPACE
         {
             pSupport->supported = VK_FALSE;
         }
-        
+
         // Might need to recheck this
     }#endif
 #pragma endregion
@@ -4722,7 +4715,7 @@ namespace ashes::D3D11_NAMESPACE
 	{
 		return get( instance )->getApiVersion() >= version;
 	}
-	
+
 	bool checkVersionExt( VkInstance instance
 		, uint32_t version
 		, std::string_view extension )
@@ -4730,13 +4723,13 @@ namespace ashes::D3D11_NAMESPACE
 		return checkVersion( instance, version )
 			&& get( instance )->hasExtension( extension );
 	}
-	
+
 	bool checkVersion( VkDevice device
 		, uint32_t version )
 	{
 		return checkVersion( getInstance( device ), version );
 	}
-	
+
 	bool checkVersionExt( VkDevice device
 		, uint32_t version
 		, std::string_view extension )

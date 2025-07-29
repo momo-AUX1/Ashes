@@ -1677,7 +1677,7 @@ namespace ashes::gl
 	{
 		assert( pPeerMemoryFeatures );
 
-		*pPeerMemoryFeatures = 0;
+		*pPeerMemoryFeatures = VkPeerMemoryFeatureFlags{};
 	}
 
 	void VKAPI_CALL vkCmdSetDeviceMask(
@@ -1696,15 +1696,7 @@ namespace ashes::gl
 		uint32_t groupCountY,
 		uint32_t groupCountZ )
 	{
-
-		uint32_t totalGroupsX = baseGroupX + groupCountX;
-		uint32_t totalGroupsY = baseGroupY + groupCountY;
-		uint32_t totalGroupsZ = baseGroupZ + groupCountZ;
-
-		// TODO: Set base offset in uniform buffer for shader consumption this shader check: if (gl_WorkGroupID.xyz >= baseOffset)
-
-		get( commandBuffer )->dispatch( totalGroupsX, totalGroupsY, totalGroupsZ );
-
+		get( commandBuffer )->dispatch( groupCountX, groupCountY, groupCountZ );
 	}
 
 	VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(
@@ -1747,7 +1739,7 @@ namespace ashes::gl
 
 		pMemoryRequirements->memoryRequirements = get( pInfo->image )->getMemoryRequirements();
 
-		auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+		auto * pNext = pMemoryRequirements->pNext;
 		while ( pNext )
 		{
 			auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
@@ -1777,15 +1769,15 @@ namespace ashes::gl
 
 		pMemoryRequirements->memoryRequirements = get( pInfo->buffer )->getMemoryRequirements();
 
-		auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+		auto * pNext = pMemoryRequirements->pNext;
 		while ( pNext )
 		{
-			auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
+			auto * header = static_cast< VkBaseOutStructure * >( pNext );
 			switch ( header->sType )
 			{
 			case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
 				{
-					auto * dedicatedReqs = reinterpret_cast< VkMemoryDedicatedRequirements * >( pNext );
+					auto * dedicatedReqs = static_cast< VkMemoryDedicatedRequirements * >( pNext );
 					dedicatedReqs->prefersDedicatedAllocation = VK_FALSE;
 					dedicatedReqs->requiresDedicatedAllocation = VK_FALSE;
 				}
