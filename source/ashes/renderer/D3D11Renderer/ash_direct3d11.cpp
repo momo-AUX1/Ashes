@@ -1632,7 +1632,7 @@ namespace ashes::D3D11_NAMESPACE
 	VkResult VKAPI_PTR vkEnumerateInstanceVersion( uint32_t * version )
 	{
 		assert( version );
-		*version = makeVersion( 1, 0, 0 );
+		*version = makeVersion( 1, 1, 0 );
 		return VK_SUCCESS;
 	}
 
@@ -1674,70 +1674,154 @@ namespace ashes::D3D11_NAMESPACE
 		return result;
 	}
 
-	void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(
-		VkDevice device,
-		[[maybe_unused]] uint32_t heapIndex,
-		[[maybe_unused]] uint32_t localDeviceIndex,
-		[[maybe_unused]] uint32_t remoteDeviceIndex,
-		VkPeerMemoryFeatureFlags * pPeerMemoryFeatures )
-	{
-		reportUnsupported( device, "vkGetDeviceGroupPeerMemoryFeatures" );
-		*pPeerMemoryFeatures = VkPeerMemoryFeatureFlags{};
-	}
+    void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(
+        VkDevice device,
+        uint32_t heapIndex,
+        uint32_t localDeviceIndex,
+        uint32_t remoteDeviceIndex,
+        VkPeerMemoryFeatureFlags * pPeerMemoryFeatures )
+    {
+        assert( pPeerMemoryFeatures );
+        *pPeerMemoryFeatures = 0;
+    }
 
-	void VKAPI_CALL vkCmdSetDeviceMask(
-		VkCommandBuffer commandBuffer,
-		[[maybe_unused]] uint32_t deviceMask )
-	{
-		reportUnsupported( commandBuffer, "vkCmdSetDeviceMask" );
-	}
+    void VKAPI_CALL vkCmdSetDeviceMask(
+        VkCommandBuffer commandBuffer,
+        uint32_t deviceMask )
+    {
+		// no op here too 
+    }
 
-	void VKAPI_CALL vkCmdDispatchBase(
-		VkCommandBuffer commandBuffer,
-		[[maybe_unused]] uint32_t baseGroupX,
-		[[maybe_unused]] uint32_t baseGroupY,
-		[[maybe_unused]] uint32_t baseGroupZ,
-		[[maybe_unused]] uint32_t groupCountX,
-		[[maybe_unused]] uint32_t groupCountY,
-		[[maybe_unused]] uint32_t groupCountZ )
-	{
-		reportUnsupported( commandBuffer, "vkCmdDispatchBase" );
-	}
+    void VKAPI_CALL vkCmdDispatchBase(
+        VkCommandBuffer commandBuffer,
+        uint32_t baseGroupX,
+        uint32_t baseGroupY,
+        uint32_t baseGroupZ,
+        uint32_t groupCountX,
+        uint32_t groupCountY,
+        uint32_t groupCountZ )
+    {
 
-	VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(
-		VkInstance instance,
-		[[maybe_unused]] uint32_t * pPhysicalDeviceGroupCount,
-		[[maybe_unused]] VkPhysicalDeviceGroupProperties * pPhysicalDeviceGroupProperties )
-	{
-		return reportUnsupported( instance, "vkEnumeratePhysicalDeviceGroups" );
-	}
+        uint32_t totalGroupsX = baseGroupX + groupCountX;
+        uint32_t totalGroupsY = baseGroupY + groupCountY;
+        uint32_t totalGroupsZ = baseGroupZ + groupCountZ;
+        
+        get( commandBuffer )->dispatch( totalGroupsX, totalGroupsY, totalGroupsZ );
+        
+        // we should probably have a shader do work here
+    }
 
-	void VKAPI_CALL vkGetImageMemoryRequirements2(
-		VkDevice device,
-		[[maybe_unused]] const VkImageMemoryRequirementsInfo2 * pInfo,
-		[[maybe_unused]] VkMemoryRequirements2 * pMemoryRequirements )
-	{
-		reportUnsupported( device, "vkGetImageMemoryRequirements2" );
-	}
+    VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(
+        VkInstance instance,
+        uint32_t * pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties * pPhysicalDeviceGroupProperties )
+    {
+        assert( pPhysicalDeviceGroupCount );
+        
+        auto physicalDevices = get( instance )->enumeratePhysicalDevices();
+        *pPhysicalDeviceGroupCount = uint32_t( physicalDevices.size() );
+        
+        if ( pPhysicalDeviceGroupProperties )
+        {
+            for ( size_t i = 0; i < physicalDevices.size() && i < *pPhysicalDeviceGroupCount; ++i )
+            {
+                pPhysicalDeviceGroupProperties[i].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES;
+                pPhysicalDeviceGroupProperties[i].pNext = nullptr;
+                pPhysicalDeviceGroupProperties[i].physicalDeviceCount = 1;
+                pPhysicalDeviceGroupProperties[i].physicalDevices[0] = physicalDevices[i];
+                for ( uint32_t j = 1; j < VK_MAX_DEVICE_GROUP_SIZE; ++j )
+                {
+                    pPhysicalDeviceGroupProperties[i].physicalDevices[j] = VK_NULL_HANDLE;
+                }
+                pPhysicalDeviceGroupProperties[i].subsetAllocation = VK_FALSE;
+            }
+        }
+        
+        return VK_SUCCESS;
+    }
 
-	void VKAPI_CALL vkGetBufferMemoryRequirements2(
-		VkDevice device,
-		[[maybe_unused]] const VkBufferMemoryRequirementsInfo2 * pInfo,
-		[[maybe_unused]] VkMemoryRequirements2 * pMemoryRequirements )
-	{
-		reportUnsupported( device, "vkGetBufferMemoryRequirements2" );
-	}
+    void VKAPI_CALL vkGetImageMemoryRequirements2(
+        VkDevice device,
+        const VkImageMemoryRequirementsInfo2 * pInfo,
+        VkMemoryRequirements2 * pMemoryRequirements )
+    {
+        assert( pInfo );
+        assert( pMemoryRequirements );
+        
+        pMemoryRequirements->memoryRequirements = get( pInfo->image )->getMemoryRequirements();
+        
+        auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+        while ( pNext )
+        {
+            auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
+            switch ( header->sType )
+            {
+            case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
+                {
+                    auto * dedicatedReqs = reinterpret_cast< VkMemoryDedicatedRequirements * >( pNext );
+                    dedicatedReqs->prefersDedicatedAllocation = VK_FALSE;
+                    dedicatedReqs->requiresDedicatedAllocation = VK_FALSE;
+                }
+                break;
+            default:
+                break;
+            }
+            pNext = header->pNext;
+        }
+    }
 
-	void VKAPI_CALL vkGetImageSparseMemoryRequirements2(
-		VkDevice device,
-		[[maybe_unused]] const VkImageSparseMemoryRequirementsInfo2 * pInfo,
-		[[maybe_unused]] uint32_t * pSparseMemoryRequirementCount,
-		[[maybe_unused]] VkSparseImageMemoryRequirements2 * pSparseMemoryRequirements )
-	{
-		reportUnsupported( device, "vkGetImageSparseMemoryRequirements2" );
-	}
+    void VKAPI_CALL vkGetBufferMemoryRequirements2(
+        VkDevice device,
+        const VkBufferMemoryRequirementsInfo2 * pInfo,
+        VkMemoryRequirements2 * pMemoryRequirements )
+    {
+        assert( pInfo );
+        assert( pMemoryRequirements );
+        
+        pMemoryRequirements->memoryRequirements = get( pInfo->buffer )->getMemoryRequirements();
+        
+        auto * pNext = const_cast< void * >( pMemoryRequirements->pNext );
+        while ( pNext )
+        {
+            auto * header = reinterpret_cast< VkBaseOutStructure * >( pNext );
+            switch ( header->sType )
+            {
+            case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
+                {
+                    auto * dedicatedReqs = reinterpret_cast< VkMemoryDedicatedRequirements * >( pNext );
+                    dedicatedReqs->prefersDedicatedAllocation = VK_FALSE;
+                    dedicatedReqs->requiresDedicatedAllocation = VK_FALSE;
+                }
+                break;
+            default:
+                break;
+            }
+            pNext = header->pNext;
+        }
+    }
 
-	void VKAPI_CALL vkGetPhysicalDeviceFeatures2(
+    void VKAPI_CALL vkGetImageSparseMemoryRequirements2(
+        VkDevice device,
+        const VkImageSparseMemoryRequirementsInfo2 * pInfo,
+        uint32_t * pSparseMemoryRequirementCount,
+        VkSparseImageMemoryRequirements2 * pSparseMemoryRequirements )
+    {
+        assert( pInfo );
+        assert( pSparseMemoryRequirementCount );
+        
+        auto sparseReqs = get( pInfo->image )->getSparseImageMemoryRequirements();
+        *pSparseMemoryRequirementCount = uint32_t( sparseReqs.size() );
+        
+        if ( pSparseMemoryRequirements && !sparseReqs.empty() )
+        {
+            for ( size_t i = 0; i < sparseReqs.size() && i < *pSparseMemoryRequirementCount; ++i )
+            {
+                pSparseMemoryRequirements[i].sType = VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2;
+                pSparseMemoryRequirements[i].pNext = nullptr;
+                pSparseMemoryRequirements[i].memoryRequirements = sparseReqs[i];
+            }
+        }
+    }	void VKAPI_CALL vkGetPhysicalDeviceFeatures2(
 		VkPhysicalDevice physicalDevice,
 		VkPhysicalDeviceFeatures2 * pFeatures )
 	{
@@ -1819,15 +1903,18 @@ namespace ashes::D3D11_NAMESPACE
 	{
 	}
 
-	void VKAPI_CALL vkGetDeviceQueue2(
-		VkDevice device,
-		[[maybe_unused]] const VkDeviceQueueInfo2 * pQueueInfo,
-		[[maybe_unused]] VkQueue * pQueue )
-	{
-		reportUnsupported( device, "vkGetDeviceQueue2" );
-	}
+    void VKAPI_CALL vkGetDeviceQueue2(
+        VkDevice device,
+        const VkDeviceQueueInfo2 * pQueueInfo,
+        VkQueue * pQueue )
+    {
+        assert( pQueueInfo );
+        assert( pQueue );
+        *pQueue = get( device )->getQueue( pQueueInfo->queueFamilyIndex, pQueueInfo->queueIndex );
+        
+    }
 
-	VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(
+    VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(
 		VkDevice device,
 		[[maybe_unused]] const VkSamplerYcbcrConversionCreateInfo * pCreateInfo,
 		[[maybe_unused]] const VkAllocationCallbacks * pAllocator,
@@ -1844,65 +1931,143 @@ namespace ashes::D3D11_NAMESPACE
 		reportUnsupported( device, "vkDestroySamplerYcbcrConversion" );
 	}
 
-	VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(
-		VkDevice device,
-		[[maybe_unused]] const VkDescriptorUpdateTemplateCreateInfo * pCreateInfo,
-		[[maybe_unused]] const VkAllocationCallbacks * pAllocator,
-		[[maybe_unused]] VkDescriptorUpdateTemplate * pDescriptorUpdateTemplate )
-	{
-		return reportUnsupported( device, "vkCreateDescriptorUpdateTemplate" );
-	}
+    VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo * pCreateInfo,
+        const VkAllocationCallbacks * pAllocator,
+        VkDescriptorUpdateTemplate * pDescriptorUpdateTemplate )
+    {
+        assert( pCreateInfo );
+        assert( pDescriptorUpdateTemplate );
 
-	void VKAPI_CALL vkDestroyDescriptorUpdateTemplate(
-		VkDevice device,
-		[[maybe_unused]] VkDescriptorUpdateTemplate descriptorUpdateTemplate,
-		[[maybe_unused]] const VkAllocationCallbacks * pAllocator )
-	{
-		reportUnsupported( device, "vkDestroyDescriptorUpdateTemplate" );
-	}
+        return allocate( *pDescriptorUpdateTemplate
+            , pAllocator
+            , device
+            , *pCreateInfo );
+    }
 
-	void VKAPI_CALL vkUpdateDescriptorSetWithTemplate(
-		VkDevice device,
-		[[maybe_unused]] VkDescriptorSet descriptorSet,
-		[[maybe_unused]] VkDescriptorUpdateTemplate descriptorUpdateTemplate,
-		[[maybe_unused]] const void * pData )
-	{
-		reportUnsupported( device, "vkUpdateDescriptorSetWithTemplate" );
-	}
+    void VKAPI_CALL vkDestroyDescriptorUpdateTemplate(
+        VkDevice device,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        const VkAllocationCallbacks * pAllocator )
+    {
+        deallocate( descriptorUpdateTemplate, pAllocator );
+    }
 
-	void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(
-		VkPhysicalDevice physicalDevice,
-		[[maybe_unused]] const VkPhysicalDeviceExternalBufferInfo * pExternalBufferInfo,
-		[[maybe_unused]] VkExternalBufferProperties * pExternalBufferProperties )
-	{
-		reportUnsupported( physicalDevice, "vkGetPhysicalDeviceExternalBufferProperties" );
-	}
+    void VKAPI_CALL vkUpdateDescriptorSetWithTemplate(
+        VkDevice device,
+        VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        const void * pData )
+    {
+        assert( descriptorSet );
+        assert( descriptorUpdateTemplate );
+        assert( pData );
+        
 
-	void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(
-		VkPhysicalDevice physicalDevice,
-		[[maybe_unused]] const VkPhysicalDeviceExternalFenceInfo * pExternalFenceInfo,
-		[[maybe_unused]] VkExternalFenceProperties * pExternalFenceProperties )
-	{
-		reportUnsupported( physicalDevice, "vkGetPhysicalDeviceExternalFenceProperties" );
-	}
+        get( descriptorUpdateTemplate )->updateDescriptorSet( descriptorSet, pData );
+    }    void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalBufferInfo * pExternalBufferInfo,
+        VkExternalBufferProperties * pExternalBufferProperties )
+    {
+        assert( pExternalBufferInfo );
+        assert( pExternalBufferProperties );
+        
+        pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
+        pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
+        pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
+    }
 
-	void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(
-		VkPhysicalDevice physicalDevice,
-		[[maybe_unused]] const VkPhysicalDeviceExternalSemaphoreInfo * pExternalSemaphoreInfo,
-		[[maybe_unused]] VkExternalSemaphoreProperties * pExternalSemaphoreProperties )
-	{
-		reportUnsupported( physicalDevice, "vkGetPhysicalDeviceExternalSemaphoreProperties" );
-	}
+    void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalFenceInfo * pExternalFenceInfo,
+        VkExternalFenceProperties * pExternalFenceProperties )
+    {
+        assert( pExternalFenceInfo );
+        assert( pExternalFenceProperties );
+        
+        pExternalFenceProperties->exportFromImportedHandleTypes = 0;
+        pExternalFenceProperties->compatibleHandleTypes = 0;
+        pExternalFenceProperties->externalFenceFeatures = 0;
+    }
 
-	void VKAPI_CALL vkGetDescriptorSetLayoutSupport(
-		VkDevice device,
-		[[maybe_unused]] const VkDescriptorSetLayoutCreateInfo * pCreateInfo,
-		[[maybe_unused]] VkDescriptorSetLayoutSupport * pSupport )
-	{
-		reportUnsupported( device, "vkGetDescriptorSetLayoutSupport" );
-	}
+    void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalSemaphoreInfo * pExternalSemaphoreInfo,
+        VkExternalSemaphoreProperties * pExternalSemaphoreProperties )
+    {
+        assert( pExternalSemaphoreInfo );
+        assert( pExternalSemaphoreProperties );
+        
+        pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
+        pExternalSemaphoreProperties->compatibleHandleTypes = 0;
+        pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
+    }    void VKAPI_CALL vkGetDescriptorSetLayoutSupport(
+        VkDevice device,
+        const VkDescriptorSetLayoutCreateInfo * pCreateInfo,
+        VkDescriptorSetLayoutSupport * pSupport )
+    {
+        assert( pCreateInfo );
+        assert( pSupport );
+        
 
-#endif
+        pSupport->supported = VK_TRUE;
+        
+        uint32_t samplerCount = 0;
+        uint32_t textureCount = 0;
+        uint32_t bufferCount = 0;
+        uint32_t storageBufferCount = 0;
+        uint32_t storageImageCount = 0;
+        
+        for ( auto & binding : makeArrayView( pCreateInfo->pBindings, pCreateInfo->bindingCount ) )
+        {
+            switch ( binding.descriptorType )
+            {
+            case VK_DESCRIPTOR_TYPE_SAMPLER:
+            case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+                samplerCount += binding.descriptorCount;
+                if ( binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
+                {
+                    textureCount += binding.descriptorCount;
+                }
+                break;
+            case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+            case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+                textureCount += binding.descriptorCount;
+                break;
+            case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                storageImageCount += binding.descriptorCount;
+                break;
+            case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+            case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+                textureCount += binding.descriptorCount;
+                break;
+            case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+                bufferCount += binding.descriptorCount;
+                break;
+            case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+            case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+                storageBufferCount += binding.descriptorCount;
+                break;
+            default:
+                break;
+            }
+        }
+        
+
+        if ( samplerCount > 1024 ||
+             textureCount > 4096 ||
+             bufferCount > 1024 ||
+             storageBufferCount > 256 ||
+             storageImageCount > 256 )
+        {
+            pSupport->supported = VK_FALSE;
+        }
+        
+        // Might need to recheck this
+    }#endif
 #pragma endregion
 #pragma region VK_API_VERSION_1_2
 #ifdef VK_API_VERSION_1_2
