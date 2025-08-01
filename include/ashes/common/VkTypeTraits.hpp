@@ -452,6 +452,7 @@ namespace ashes
 	template<>
 	struct VkTypeTraits< VkDescriptorUpdateTemplate >
 	{
+		static constexpr VkSystemAllocationScope Scope = VK_SYSTEM_ALLOCATION_SCOPE_DEVICE;
 #if VK_EXT_debug_utils
 		static VkObjectType constexpr UtilsValue = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE;
 #endif
