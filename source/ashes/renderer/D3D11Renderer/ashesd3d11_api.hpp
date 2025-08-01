@@ -20,6 +20,7 @@ See LICENSE file in root folder.
 #include "Descriptor/D3D11DescriptorPool.hpp"
 #include "Descriptor/D3D11DescriptorSet.hpp"
 #include "Descriptor/D3D11DescriptorSetLayout.hpp"
+#include "Descriptor/D3D11DescriptorUpdateTemplate.hpp"
 #include "Miscellaneous/D3D11DeviceMemory.hpp"
 #include "Miscellaneous/D3D11QueryPool.hpp"
 #include "Image/D3D11Image.hpp"
@@ -89,6 +90,7 @@ namespace ashes::D3D11_NAMESPACE
 	VK_IMPLEMENT_HANDLE( Sampler );
 	VK_IMPLEMENT_HANDLE( DescriptorPool );
 	VK_IMPLEMENT_HANDLE( DescriptorSet );
+	VK_IMPLEMENT_HANDLE( DescriptorUpdateTemplate );
 	VK_IMPLEMENT_HANDLE( CommandPool );
 	VK_IMPLEMENT_HANDLE( Framebuffer );
 #ifdef VK_KHR_surface
@@ -101,7 +103,6 @@ namespace ashes::D3D11_NAMESPACE
 	VK_IMPLEMENT_HANDLE( SamplerYcbcrConversion );
 #endif
 #ifdef VK_KHR_push_descriptor
-	VK_IMPLEMENT_HANDLE( DescriptorUpdateTemplate );
 #endif
 #ifdef VK_KHR_display
 	VK_IMPLEMENT_HANDLE( DisplayKHR );

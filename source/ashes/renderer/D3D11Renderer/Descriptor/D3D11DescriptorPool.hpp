@@ -2,7 +2,7 @@
 *\file
 *	DescriptorSetPool.h
 *\author
-*	Sylvain Doremus
+*	Momo-AUX1
 */
 #ifndef ___D3D11Renderer_DescriptorPool_HPP___
 #define ___D3D11Renderer_DescriptorPool_HPP___

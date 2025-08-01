@@ -217,12 +217,14 @@ set( ${PROJECT_NAME}_FOLDER_SRC_FILES
 	Descriptor/D3D11DescriptorPool.cpp
 	Descriptor/D3D11DescriptorSet.cpp
 	Descriptor/D3D11DescriptorSetLayout.cpp
+	Descriptor/D3D11DescriptorUpdateTemplate.cpp
 	Descriptor/D3D11WriteDescriptorSet.cpp
 )
 set( ${PROJECT_NAME}_FOLDER_HDR_FILES
 	Descriptor/D3D11DescriptorPool.hpp
 	Descriptor/D3D11DescriptorSet.hpp
 	Descriptor/D3D11DescriptorSetLayout.hpp
+	Descriptor/D3D11DescriptorUpdateTemplate.hpp
 	Descriptor/D3D11WriteDescriptorSet.hpp
 )
 set( ${PROJECT_NAME}_SRC_FILES
@@ -485,7 +487,7 @@ add_library( ashes::${_PROJECT_NAME}
 	ALIAS
 	${PROJECT_NAME}
 )
-target_sources( ${PROJECT_NAME} 
+target_sources( ${PROJECT_NAME}
 	PRIVATE
 		${Ashes_SOURCE_DIR}/.editorconfig
 )

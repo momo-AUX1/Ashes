@@ -1,6 +1,7 @@
 #include "Core/GlContext.hpp"
 
 #include "ashesgl_api.hpp"
+#include "Descriptor/GlDescriptorUpdateTemplate.hpp"
 
 #include <renderer/GlRenderer/Miscellaneous/GlWindow.hpp>
 #include <renderer/GlRenderer/Miscellaneous/GlExtensionsHandler.hpp>
@@ -2034,10 +2035,11 @@ namespace ashes::gl
 		VkDescriptorUpdateTemplate descriptorUpdateTemplate,
 		const void * pData )
 	{
-		assert( descriptorSet );
-		assert( descriptorUpdateTemplate );
-		assert( pData );
-		get( descriptorUpdateTemplate )->updateDescriptorSet( descriptorSet, pData );
+		// assert( descriptorSet );
+		// assert( descriptorUpdateTemplate );
+		// assert( pData );
+		auto* templ = reinterpret_cast<ashes::gl::DescriptorUpdateTemplate*>( descriptorUpdateTemplate );
+		templ->updateDescriptorSet( descriptorSet, pData );
 	}
 
 	void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(

@@ -1,7 +1,7 @@
 set( _PROJECT_NAME GlRenderer )
 project( ashes${_PROJECT_NAME} )
 
-if ( ${CMAKE_VERSION} VERSION_GREATER "3.10.2" ) 
+if ( ${CMAKE_VERSION} VERSION_GREATER "3.10.2" )
 	cmake_policy( SET CMP0072 NEW )
 endif()
 
@@ -265,11 +265,13 @@ if ( OpenGL_FOUND )
 		Descriptor/GlDescriptorPool.cpp
 		Descriptor/GlDescriptorSet.cpp
 		Descriptor/GlDescriptorSetLayout.cpp
+		Descriptor/GlDescriptorUpdateTemplate.cpp
 	)
 	set( ${PROJECT_NAME}_FOLDER_HDR_FILES
 		Descriptor/GlDescriptorPool.hpp
 		Descriptor/GlDescriptorSet.hpp
 		Descriptor/GlDescriptorSetLayout.hpp
+		Descriptor/GlDescriptorUpdateTemplate.hpp
 	)
 	set( ${PROJECT_NAME}_SRC_FILES
 		${${PROJECT_NAME}_SRC_FILES}
@@ -612,7 +614,7 @@ if ( OpenGL_FOUND )
 		ALIAS
 		${PROJECT_NAME}
 	)
-	target_sources( ${PROJECT_NAME} 
+	target_sources( ${PROJECT_NAME}
 		PRIVATE
 			${Ashes_SOURCE_DIR}/.editorconfig
 	)

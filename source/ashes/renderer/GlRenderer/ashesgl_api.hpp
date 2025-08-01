@@ -20,6 +20,7 @@ See LICENSE file in root folder.
 #include "Descriptor/GlDescriptorPool.hpp"
 #include "Descriptor/GlDescriptorSet.hpp"
 #include "Descriptor/GlDescriptorSetLayout.hpp"
+#include "Descriptor/GlDescriptorUpdateTemplate.hpp"
 #include "Miscellaneous/GlDeviceMemory.hpp"
 #include "Miscellaneous/GlQueryPool.hpp"
 #include "Image/GlImage.hpp"
@@ -55,7 +56,7 @@ namespace ashes::gl
 
 	template< typename T >
 	static constexpr T NonAvailable = std::numeric_limits< T >::max();
-	
+
 	template< typename T >
 	static constexpr T DefaultAlign = T{ 1 };
 
@@ -100,6 +101,7 @@ namespace ashes::gl
 	VK_IMPLEMENT_HANDLE( Sampler );
 	VK_IMPLEMENT_HANDLE( DescriptorPool );
 	VK_IMPLEMENT_HANDLE( DescriptorSet );
+	VK_IMPLEMENT_HANDLE( DescriptorUpdateTemplate );
 	VK_IMPLEMENT_HANDLE( CommandPool );
 	VK_IMPLEMENT_HANDLE( Framebuffer );
 #ifdef VK_KHR_surface
@@ -110,9 +112,6 @@ namespace ashes::gl
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 	VK_IMPLEMENT_HANDLE( SamplerYcbcrConversion );
-#endif
-#ifdef VK_KHR_push_descriptor
-	VK_IMPLEMENT_HANDLE( DescriptorUpdateTemplate );
 #endif
 #ifdef VK_KHR_display
 	VK_IMPLEMENT_HANDLE( DisplayKHR );
