@@ -50,7 +50,7 @@ namespace ashes::D3D11_NAMESPACE
 
 	template< typename VkType >
 	struct VkDxTypeTraits;
-	
+
 	template< typename Type >
 	struct DxVkTypeTraits;
 

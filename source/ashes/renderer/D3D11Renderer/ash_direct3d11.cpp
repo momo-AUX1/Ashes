@@ -2060,7 +2060,8 @@ namespace ashes::D3D11_NAMESPACE
         }
 
         // Might need to recheck this
-    }#endif
+    }
+#endif
 #pragma endregion
 #pragma region VK_API_VERSION_1_2
 #ifdef VK_API_VERSION_1_2
