@@ -450,6 +450,22 @@ namespace ashes
 	};
 
 	template<>
+	struct VkTypeTraits< VkDescriptorUpdateTemplate >
+	{
+#if VK_EXT_debug_utils
+		static VkObjectType constexpr UtilsValue = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE;
+#endif
+#if VK_EXT_debug_report || VK_EXT_debug_marker
+		static VkDebugReportObjectTypeEXT constexpr ReportValue = VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT;
+#endif
+		static inline std::string Name{ "VkDescriptorUpdateTemplate" };
+		static std::string const & getName()
+		{
+			return Name;
+		}
+	};
+
+	template<>
 	struct VkTypeTraits< VkFramebuffer >
 	{
 		static constexpr VkSystemAllocationScope Scope = VK_SYSTEM_ALLOCATION_SCOPE_DEVICE;
@@ -563,7 +579,7 @@ namespace ashes
 	{
 		static VkStructureType constexpr TypeValue = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK_EXT;
 	};
-	
+
 	template<>
 	struct VkStructureTypeTraits< VkDescriptorPoolInlineUniformBlockCreateInfoEXT >
 	{
