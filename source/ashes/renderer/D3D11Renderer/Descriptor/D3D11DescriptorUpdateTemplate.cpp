@@ -46,7 +46,7 @@ namespace ashes::D3D11_NAMESPACE
 				writeSet.dstSet = descriptorSet;
 				writeSet.dstBinding = entry.dstBinding;
 				writeSet.dstArrayElement = entry.dstArrayElement + i;
-				writeSet.descriptorCount = 1; /
+				writeSet.descriptorCount = 1; 
 				writeSet.descriptorType = entry.descriptorType;
 
 				auto const * entryData = dataBytes + entry.offset + (i * entry.stride);
