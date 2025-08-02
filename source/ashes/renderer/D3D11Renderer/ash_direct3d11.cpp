@@ -4908,7 +4908,7 @@ extern "C"
 			}
 			else
 			{
-				*pVersion = 4;
+				*pVersion = 5;
 			}
 		}
 

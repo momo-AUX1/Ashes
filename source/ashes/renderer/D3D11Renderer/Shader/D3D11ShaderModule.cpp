@@ -450,7 +450,7 @@ namespace ashes::D3D11_NAMESPACE
 	{
 		static std::map< D3D_FEATURE_LEVEL, std::map< VkShaderStageFlagBits, std::string > > Profiles
 		{
-			{ 
+			{
 				D3D_FEATURE_LEVEL_11_1,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_5_0" },
@@ -461,7 +461,7 @@ namespace ashes::D3D11_NAMESPACE
 					{ VK_SHADER_STAGE_COMPUTE_BIT, "cs_5_0" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_11_0,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_5_0" },
@@ -472,7 +472,7 @@ namespace ashes::D3D11_NAMESPACE
 					{ VK_SHADER_STAGE_COMPUTE_BIT, "cs_5_0" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_10_1,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_4_1" },
@@ -480,7 +480,7 @@ namespace ashes::D3D11_NAMESPACE
 					{ VK_SHADER_STAGE_FRAGMENT_BIT, "ps_4_1" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_10_0,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_4_0" },
@@ -488,21 +488,21 @@ namespace ashes::D3D11_NAMESPACE
 					{ VK_SHADER_STAGE_FRAGMENT_BIT, "ps_4_0" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_9_3,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_3_0" },
 					{ VK_SHADER_STAGE_FRAGMENT_BIT, "ps_3_0" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_9_2,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_2_0" },
 					{ VK_SHADER_STAGE_FRAGMENT_BIT, "ps_2_0" },
 				}
 			},
-			{ 
+			{
 				D3D_FEATURE_LEVEL_9_1,
 				{
 					{ VK_SHADER_STAGE_VERTEX_BIT, "vs_1_1" },
