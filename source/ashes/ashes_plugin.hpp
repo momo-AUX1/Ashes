@@ -38,7 +38,14 @@ struct Plugin
 			throw ashes::BaseException{ "[" + ashes::getFileName( library->getPath() ) + "] is not a renderer plugin" };
 		}
 
-		fnGetPluginDescription( &description );
+		description = {};
+		auto result = fnGetPluginDescription( &description );
+		if ( result != VK_SUCCESS
+			|| description.name[0] == '\0'
+			|| description.description[0] == '\0' )
+		{
+			throw ashes::BaseException{ "[" + ashes::getFileName( library->getPath() ) + "] failed to provide a valid plugin description" };
+		}
 	}
 };
 

@@ -7,15 +7,44 @@ if ( NOT TARGET glslang )
 		find_package( glslang CONFIG REQUIRED glslang OSDependent OGLCompiler SPIRV HLSL )
 		if ( ${glslang_FOUND} )
 			set( GLSLANG_FOUND ON )
-			set( glslang_LIBRARIES
-				glslang::OSDependent
-				glslang::glslang
-				glslang::OGLCompiler
-				glslang::SPIRV
-				glslang::HLSL )
-			set( glslang_INCLUDE_DIR
-				${Ashes_SOURCE_DIR}/external/glslang
-			)
+			set( glslang_LIBRARIES )
+			if ( TARGET glslang::OSDependent )
+				list( APPEND glslang_LIBRARIES glslang::OSDependent )
+			endif ()
+			if ( TARGET glslang::glslang )
+				list( APPEND glslang_LIBRARIES glslang::glslang )
+			endif ()
+			if ( TARGET glslang::OGLCompiler )
+				list( APPEND glslang_LIBRARIES glslang::OGLCompiler )
+			endif ()
+			if ( TARGET glslang::SPIRV )
+				list( APPEND glslang_LIBRARIES glslang::SPIRV )
+			endif ()
+			if ( TARGET glslang::SPVRemapper )
+				list( APPEND glslang_LIBRARIES glslang::SPVRemapper )
+			endif ()
+			if ( TARGET glslang::HLSL )
+				list( APPEND glslang_LIBRARIES glslang::HLSL )
+			endif ()
+			if ( TARGET glslang::MachineIndependent )
+				list( APPEND glslang_LIBRARIES glslang::MachineIndependent )
+			endif ()
+			if ( TARGET glslang::GenericCodeGen )
+				list( APPEND glslang_LIBRARIES glslang::GenericCodeGen )
+			endif ()
+			if ( TARGET glslang::glslang-default-resource-limits )
+				list( APPEND glslang_LIBRARIES glslang::glslang-default-resource-limits )
+			endif ()
+			if ( _VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET )
+				set( glslang_INCLUDE_DIR
+					${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include
+					${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/glslang
+				)
+			else ()
+				set( glslang_INCLUDE_DIR
+					${Ashes_SOURCE_DIR}/external/glslang
+				)
+			endif ()
 		endif ()
 		if ( GLSLANG_FOUND )
 			set( ASHES_HAS_GLSLANG ON )

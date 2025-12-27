@@ -244,6 +244,7 @@ namespace ashes::gl
 
 	VkResult SwapchainKHR::present()const
 	{
+#if !defined( __APPLE__ )
 		auto srcExtent = m_createInfo.imageExtent;
 		auto dstExtent = m_createInfo.imageExtent;
 
@@ -251,6 +252,7 @@ namespace ashes::gl
 		{
 			dstExtent = get( m_createInfo.surface )->getDisplayCreateInfo().imageExtent;
 		}
+#endif
 
 		auto context = get( m_device )->getContext();
 
@@ -284,11 +286,14 @@ namespace ashes::gl
 			, glBindFramebuffer
 			, GL_DRAW_FRAMEBUFFER
 			, 0 );
+#if !defined( __APPLE__ )
+		auto filter = GL_FILTER_LINEAR;
 		glLogCall( context
 			, glBlitFramebuffer
 			, 0, 0, GLint( srcExtent.width ), GLint( srcExtent.height )
 			, 0, 0, GLint( dstExtent.width ), GLint( dstExtent.height )
-			, GL_COLOR_BUFFER_BIT, GL_FILTER_LINEAR );
+			, GL_COLOR_BUFFER_BIT, filter );
+#endif
 		glLogCall( context
 			, glBindFramebuffer
 			, GL_READ_FRAMEBUFFER

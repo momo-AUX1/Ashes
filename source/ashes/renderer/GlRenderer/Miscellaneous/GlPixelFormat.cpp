@@ -5,7 +5,7 @@ namespace ashes::gl
 {
 	namespace
 	{
-		void getFormatAndType( ContextLock const & context
+		[[maybe_unused]] void getFormatAndType( ContextLock const & context
 			, GlTextureType target
 			, VkFormat vkformat
 			, GlInternal internal
@@ -47,6 +47,13 @@ namespace ashes::gl
 		, unpackType{ getType( vkformat ) }
 		, swizzle{ std::move( swizzle ) }
 	{
+#if defined( __APPLE__ )
+		packFormat = getFormat( vkformat );
+		packType = getType( vkformat );
+		readFormat = packFormat;
+		readType = packType;
+		readSupport = false;
+#else
 		getFormatAndType( context
 			, target
 			, vkformat
@@ -81,6 +88,7 @@ namespace ashes::gl
 			readFormat = packFormat;
 			readType = packType;
 		}
+#endif
 	}
 
 	PixelFormat::PixelFormat( ContextLock const & context

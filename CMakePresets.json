@@ -86,6 +86,60 @@
             }
         },
         {
+            "name": "macos-ninja-debug",
+            "displayName": "macOS Ninja Config, Debug",
+            "description": "macOS build configuration using Ninja, Debug",
+            "inherits": "default-ninja-base",
+            "binaryDir": "${sourceDir}/build/macos-ninja-debug",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "macos-ninja-release",
+            "displayName": "macOS Ninja Config, Release",
+            "description": "macOS build configuration using Ninja, Release",
+            "inherits": "default-ninja-base",
+            "binaryDir": "${sourceDir}/build/macos-ninja-release",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "macos-vcpkg-tests-debug",
+            "displayName": "macOS vcpkg Tests, Debug",
+            "description": "macOS tests build using Ninja + vcpkg, Debug",
+            "inherits": "default-ninja-base",
+            "binaryDir": "${sourceDir}/build/macos-vcpkg-tests-debug",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_MANIFEST_FEATURES": "opengl;tests;util",
+                "ASHES_BUILD_RENDERER_VKN": false,
+                "ASHES_BUILD_RENDERER_D3D11": false,
+                "ASHES_BUILD_RENDERER_XBOX": false,
+                "ASHES_BUILD_SAMPLES": false,
+                "ASHES_BUILD_TEMPLATES": false,
+                "ASHES_BUILD_TESTS": true,
+                "ASHES_TEST_ICD": true
+            }
+        },
+        {
             "name": "dev-base",
             "hidden": true,
             "installDir": "${sourceDir}/package/Ashes",

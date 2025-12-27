@@ -122,7 +122,7 @@ namespace ashes::gl
 				m_deviceExtensionNames.emplace_back( reinterpret_cast< char const * >( getStringi( GL_INFO_EXTENSIONS, i ) ) );
 			}
 		}
-		
+
 
 		int numSpirvExtensions = 0;
 		getIntegerv( GL_SPIRV_NUM_SPIR_V_EXTENSIONS, &numSpirvExtensions );
@@ -158,9 +158,9 @@ namespace ashes::gl
 		m_features.hasImageTexture = findAll( { ARB_texture_storage, ARB_shader_image_load_store } );
 		m_features.hasBaseInstance = find( ARB_base_instance );
 		m_features.hasClearTexImage = find( ARB_clear_texture );
-		m_features.hasComputeShaders = findAny( { ARB_compute_shader, ARB_gpu_shader5 } );
-		m_features.hasStorageBuffers = findAll( { ARB_compute_shader, ARB_gpu_shader5, ARB_buffer_storage, ARB_shader_image_load_store, ARB_shader_storage_buffer_object } );
-		m_features.supportsPersistentMapping = true;
+		m_features.hasComputeShaders = find( ARB_compute_shader );
+		m_features.hasStorageBuffers = find( ARB_shader_storage_buffer_object );
+		m_features.supportsPersistentMapping = find( ARB_buffer_storage );
 		m_features.maxShaderLanguageVersion = m_shaderVersion;
 	}
 

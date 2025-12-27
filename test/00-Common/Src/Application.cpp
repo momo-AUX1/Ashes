@@ -291,7 +291,19 @@ namespace common
 
 		for ( auto & plugin : m_renderers )
 		{
-			parser.AddSwitch( plugin.name, wxEmptyString, _( "Defines the renderer to " ) + plugin.description );
+			wxString pluginName{ plugin.name };
+			if ( pluginName.empty() )
+			{
+				continue;
+			}
+			if ( pluginName.length() == 1 )
+			{
+				parser.AddSwitch( pluginName, wxEmptyString, _( "Defines the renderer to " ) + plugin.description );
+			}
+			else
+			{
+				parser.AddSwitch( wxEmptyString, pluginName, _( "Defines the renderer to " ) + plugin.description );
+			}
 		}
 
 		bool result = parser.Parse( false ) == 0;
@@ -318,8 +330,23 @@ namespace common
 
 			for ( auto & plugin : m_renderers )
 			{
+				wxString pluginName{ plugin.name };
+				if ( pluginName.empty() )
+				{
+					continue;
+				}
+				bool found = false;
+				if ( pluginName.length() == 1 )
+				{
+					found = parser.Found( pluginName[0] );
+				}
+				else
+				{
+					found = parser.Found( pluginName );
+				}
+
 				if ( m_rendererName == desc.name
-					&& parser.Found( plugin.name ) )
+					&& found )
 				{
 					m_rendererName = plugin.name;
 				}

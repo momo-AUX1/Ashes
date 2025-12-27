@@ -376,9 +376,11 @@ namespace ashes::gl
 					, glDebugMessageCallback
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 
@@ -393,9 +395,11 @@ namespace ashes::gl
 					, glDebugMessageCallback
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 	}
@@ -415,9 +419,11 @@ namespace ashes::gl
 					, glDebugMessageCallbackAMD
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 
@@ -432,9 +438,11 @@ namespace ashes::gl
 					, glDebugMessageCallbackAMD
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 	}
@@ -478,9 +486,11 @@ namespace ashes::gl
 					, glDebugMessageCallback
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 
@@ -495,9 +505,11 @@ namespace ashes::gl
 					, glDebugMessageCallback
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 	}
@@ -517,9 +529,11 @@ namespace ashes::gl
 					, glDebugMessageCallbackAMD
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 
@@ -534,9 +548,11 @@ namespace ashes::gl
 					, glDebugMessageCallbackAMD
 					, callback
 					, userParam );
+#if !defined( __APPLE__ )
 				glLogCall( context
 					, glEnable
 					, GL_DEBUG_OUTPUT_SYNC );
+#endif
 			}
 		}
 	}
@@ -628,9 +644,11 @@ namespace ashes::gl
 #endif
 			)
 		{
+#if !defined( __APPLE__ )
 			glLogCall( lock
 				, glEnable
 				, GL_DEBUG_OUTPUT_SYNC );
+#endif
 		}
 	}
 }

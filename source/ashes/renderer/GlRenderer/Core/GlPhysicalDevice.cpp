@@ -911,7 +911,7 @@ namespace ashes::gl
 	void PhysicalDevice::doInitialiseFeatures( ContextLock const & context )
 	{
 		m_features.robustBufferAccess = find( KHR_robustness );
-		m_features.fullDrawIndexUint32 = false;
+		m_features.fullDrawIndexUint32 = true;
 		m_features.imageCubeArray = find( ARB_texture_cube_map_array );
 		m_features.independentBlend = findAny( { ARB_draw_buffers_blend, EXT_draw_buffers2 } );
 		m_features.geometryShader = find( ARB_geometry_shader4 );
@@ -990,6 +990,7 @@ namespace ashes::gl
 		m_properties.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 		m_properties.driverVersion = 0;
 		uint32_t shaderStages = 3;
+		auto const & pluginFeatures = get( m_instance )->getFeatures();
 
 		if ( m_features.tessellationShader )
 		{
@@ -1008,7 +1009,14 @@ namespace ashes::gl
 		context.getValue( GL_VALUE_NAME_MAX_ARRAY_TEXTURE_LAYERS, m_properties.limits.maxImageArrayLayers, 2048u );
 		context.getValue( GL_VALUE_NAME_MAX_TEXTURE_BUFFER_SIZE, m_properties.limits.maxTexelBufferElements, 65536u );
 		context.getValue( GL_VALUE_NAME_MAX_UNIFORM_BLOCK_SIZE, m_properties.limits.maxUniformBufferRange, 65536u );
-		context.getValue( GL_VALUE_NAME_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, m_properties.limits.maxStorageBufferRange, 134217728u );
+		if ( pluginFeatures.hasStorageBuffers )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_SHADER_STORAGE_BLOCK_SIZE, m_properties.limits.maxStorageBufferRange, 134217728u );
+		}
+		else
+		{
+			m_properties.limits.maxStorageBufferRange = 0u;
+		}
 		context.getValue( GL_VALUE_NAME_MAX_UNIFORM_BLOCK_SIZE, m_properties.limits.maxPushConstantsSize, 16384u );
 		m_properties.limits.maxMemoryAllocationCount = NonAvailable< uint32_t >;
 		m_properties.limits.maxSamplerAllocationCount = NonAvailable< uint32_t >;
@@ -1017,18 +1025,48 @@ namespace ashes::gl
 		m_properties.limits.maxBoundDescriptorSets = NonAvailable< uint32_t >;
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_TEXTURE_IMAGE_UNITS, m_properties.limits.maxPerStageDescriptorSamplers, 8u );
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_UNIFORM_BINDINGS, m_properties.limits.maxPerStageDescriptorUniformBuffers, 84u );
-		context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxPerStageDescriptorStorageBuffers, 8u );
+		if ( pluginFeatures.hasStorageBuffers )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxPerStageDescriptorStorageBuffers, 8u );
+		}
+		else
+		{
+			m_properties.limits.maxPerStageDescriptorStorageBuffers = 0u;
+		}
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_TEXTURE_IMAGE_UNITS, m_properties.limits.maxPerStageDescriptorSampledImages, 8u );
-		context.getValue( GL_VALUE_NAME_MAX_IMAGE_UNITS, m_properties.limits.maxPerStageDescriptorStorageImages, 8u );
+		if ( pluginFeatures.hasImageTexture )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_IMAGE_UNITS, m_properties.limits.maxPerStageDescriptorStorageImages, 8u );
+		}
+		else
+		{
+			m_properties.limits.maxPerStageDescriptorStorageImages = 0u;
+		}
 		m_properties.limits.maxPerStageDescriptorInputAttachments = NonAvailable< uint32_t >;
 		m_properties.limits.maxPerStageResources = NonAvailable< uint32_t >;
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_TEXTURE_IMAGE_UNITS, m_properties.limits.maxDescriptorSetSamplers, 8u );
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_UNIFORM_BINDINGS, m_properties.limits.maxDescriptorSetUniformBuffers, 84u );
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_UNIFORM_BINDINGS, m_properties.limits.maxDescriptorSetUniformBuffersDynamic, 84u );
-		context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxDescriptorSetStorageBuffers, 8u );
-		context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxDescriptorSetStorageBuffersDynamic, 8u );
+		if ( pluginFeatures.hasStorageBuffers )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxDescriptorSetStorageBuffers, 8u );
+			context.getValue( GL_VALUE_NAME_MAX_COMBINED_SHADER_STORAGE_BINDINGS, m_properties.limits.maxDescriptorSetStorageBuffersDynamic, 8u );
+		}
+		else
+		{
+			m_properties.limits.maxDescriptorSetStorageBuffers = 0u;
+			m_properties.limits.maxDescriptorSetStorageBuffersDynamic = 0u;
+		}
 		context.getValue( GL_VALUE_NAME_MAX_COMBINED_TEXTURE_IMAGE_UNITS, m_properties.limits.maxDescriptorSetSampledImages, 8u );
-		context.getValue( GL_VALUE_NAME_MAX_IMAGE_UNITS, m_properties.limits.maxDescriptorSetStorageImages, 8u ) *= shaderStages;
+		if ( pluginFeatures.hasImageTexture )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_IMAGE_UNITS, m_properties.limits.maxDescriptorSetStorageImages, 8u );
+			m_properties.limits.maxDescriptorSetStorageImages *= shaderStages;
+		}
+		else
+		{
+			m_properties.limits.maxDescriptorSetStorageImages = 0u;
+		}
 		m_properties.limits.maxDescriptorSetInputAttachments = NonAvailable< uint32_t >;
 		context.getValue( GL_VALUE_NAME_MAX_VERTEX_ATTRIBS, m_properties.limits.maxVertexInputAttributes, 16u );
 		context.getValue( GL_VALUE_NAME_MAX_VERTEX_ATTRIB_BINDINGS, m_properties.limits.maxVertexInputBindings, 16u );
@@ -1052,10 +1090,24 @@ namespace ashes::gl
 		context.getValue( GL_VALUE_NAME_MAX_DRAW_BUFFERS, m_properties.limits.maxFragmentOutputAttachments, 8u );
 		context.getValue( GL_VALUE_NAME_MAX_DUAL_SOURCE_DRAW_BUFFERS, m_properties.limits.maxFragmentDualSrcAttachments, 1u );
 		context.getValue( GL_VALUE_NAME_MAX_COLOR_ATTACHMENTS, m_properties.limits.maxFragmentCombinedOutputResources, 8u );
-		context.getValue( GL_VALUE_NAME_MAX_COMPUTE_SHARED_MEMORY_SIZE, m_properties.limits.maxComputeSharedMemorySize, 32768u );
-		context.getValuesI( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_COUNT, m_properties.limits.maxComputeWorkGroupCount, { 65535u, 65535u, 65535u } );
-		context.getValue( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, m_properties.limits.maxComputeWorkGroupInvocations, 1024u );
-		context.getValuesI( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_SIZE, m_properties.limits.maxComputeWorkGroupSize, { 1024u, 1024u, 64u } );
+		if ( pluginFeatures.hasComputeShaders )
+		{
+			context.getValue( GL_VALUE_NAME_MAX_COMPUTE_SHARED_MEMORY_SIZE, m_properties.limits.maxComputeSharedMemorySize, 32768u );
+			context.getValuesI( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_COUNT, m_properties.limits.maxComputeWorkGroupCount, { 65535u, 65535u, 65535u } );
+			context.getValue( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, m_properties.limits.maxComputeWorkGroupInvocations, 1024u );
+			context.getValuesI( GL_VALUE_NAME_MAX_COMPUTE_WORK_GROUP_SIZE, m_properties.limits.maxComputeWorkGroupSize, { 1024u, 1024u, 64u } );
+		}
+		else
+		{
+			m_properties.limits.maxComputeSharedMemorySize = 0u;
+			m_properties.limits.maxComputeWorkGroupCount[0] = 0u;
+			m_properties.limits.maxComputeWorkGroupCount[1] = 0u;
+			m_properties.limits.maxComputeWorkGroupCount[2] = 0u;
+			m_properties.limits.maxComputeWorkGroupInvocations = 0u;
+			m_properties.limits.maxComputeWorkGroupSize[0] = 0u;
+			m_properties.limits.maxComputeWorkGroupSize[1] = 0u;
+			m_properties.limits.maxComputeWorkGroupSize[2] = 0u;
+		}
 		context.getValue( GL_VALUE_NAME_SUBPIXEL_BITS, m_properties.limits.subPixelPrecisionBits, 4u );
 		m_properties.limits.subTexelPrecisionBits = m_properties.limits.subPixelPrecisionBits;
 		m_properties.limits.mipmapPrecisionBits = NonAvailable< uint32_t >;
@@ -1069,7 +1121,14 @@ namespace ashes::gl
 		m_properties.limits.viewportBoundsRange[1] = 2.0f * float( std::max( m_properties.limits.maxViewportDimensions[0], m_properties.limits.maxViewportDimensions[1] ) );
 		m_properties.limits.viewportSubPixelBits = m_properties.limits.subPixelPrecisionBits;
 		m_properties.limits.minMemoryMapAlignment = 64u;
-		context.getValue( GL_VALUE_NAME_TEXTURE_BUFFER_OFFSET_ALIGNMENT, m_properties.limits.minTexelBufferOffsetAlignment );
+		if ( pluginFeatures.hasTexBufferRange )
+		{
+			context.getValue( GL_VALUE_NAME_TEXTURE_BUFFER_OFFSET_ALIGNMENT, m_properties.limits.minTexelBufferOffsetAlignment );
+		}
+		else
+		{
+			m_properties.limits.minTexelBufferOffsetAlignment = 1u;
+		}
 		context.getValue( GL_VALUE_NAME_UNIFORM_BUFFER_OFFSET_ALIGNMENT, m_properties.limits.minUniformBufferOffsetAlignment );
 		m_properties.limits.minStorageBufferOffsetAlignment = 1u;
 		context.getValue( GL_VALUE_NAME_MIN_PROGRAM_TEXEL_OFFSET, m_properties.limits.minTexelOffset );
@@ -1156,7 +1215,12 @@ namespace ashes::gl
 
 	void PhysicalDevice::doInitialiseQueueProperties()
 	{
-		m_queueProperties.push_back( { 0xFF	// queueFlags
+		VkQueueFlags queueFlags = 0xFFu;
+		if ( !get( m_instance )->getFeatures().hasComputeShaders )
+		{
+			queueFlags &= ~VK_QUEUE_COMPUTE_BIT;
+		}
+		m_queueProperties.push_back( { queueFlags	// queueFlags
 			, 1u							// queueCount
 			, 64u							// timestampValidBits
 			, { 1u, 1u, 1u } } );			// minImageTransferGranularity

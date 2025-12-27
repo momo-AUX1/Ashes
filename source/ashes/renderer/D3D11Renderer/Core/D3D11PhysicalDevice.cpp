@@ -51,9 +51,6 @@ namespace ashes::D3D11_NAMESPACE
 #if VK_KHR_maintenance1
 			VkExtensionProperties{ VK_KHR_MAINTENANCE1_EXTENSION_NAME, VK_KHR_MAINTENANCE1_SPEC_VERSION },
 #endif
-#if VK_KHR_get_physical_device_properties2
-			VkExtensionProperties{ VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_SPEC_VERSION },
-#endif
 #if VK_KHR_portability_subset
 			VkExtensionProperties{ VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION },
 #endif
@@ -766,8 +763,8 @@ namespace ashes::D3D11_NAMESPACE
 		m_features.fullDrawIndexUint32 = true;
 		m_features.imageCubeArray = true;
 		m_features.independentBlend = true;
-		m_features.geometryShader = false;//! m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_10_0;
-		m_features.tessellationShader = false;//! m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;
+		m_features.geometryShader = m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_10_0;
+		m_features.tessellationShader = m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.sampleRateShading = true;
 		m_features.dualSrcBlend = true;
 		m_features.logicOp = true;
@@ -789,7 +786,7 @@ namespace ashes::D3D11_NAMESPACE
 		m_features.pipelineStatisticsQuery = true;
 		m_features.vertexPipelineStoresAndAtomics = true;
 		m_features.fragmentStoresAndAtomics = true;
-		m_features.shaderTessellationAndGeometryPointSize = false;//! m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;
+		m_features.shaderTessellationAndGeometryPointSize = m_features.tessellationShader && m_features.geometryShader;
 		m_features.shaderImageGatherExtended = m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.shaderStorageImageExtendedFormats = m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.shaderStorageImageMultisample = m_adapterInfo.featureLevel >= D3D_FEATURE_LEVEL_11_0;

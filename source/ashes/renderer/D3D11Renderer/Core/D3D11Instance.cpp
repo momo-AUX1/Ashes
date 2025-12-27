@@ -220,6 +220,7 @@ namespace ashes::D3D11_NAMESPACE
 		doLoadAdapters();
 		doInitialisePhysicalDevices();
 
+		m_features = {};
 		m_features.hasTexBufferRange = m_maxFeatureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.hasImageTexture = m_maxFeatureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.hasBaseInstance = m_maxFeatureLevel >= D3D_FEATURE_LEVEL_11_0;
@@ -227,6 +228,7 @@ namespace ashes::D3D11_NAMESPACE
 		m_features.hasComputeShaders = m_maxFeatureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.hasStorageBuffers = m_maxFeatureLevel >= D3D_FEATURE_LEVEL_11_0;
 		m_features.supportsPersistentMapping = false;
+		m_features.maxShaderLanguageVersion = 0u;
 
 		checkEnabledExtensions( ashes::makeArrayView( createInfo.ppEnabledExtensionNames, createInfo.enabledExtensionCount ) );
 	}
@@ -237,7 +239,7 @@ namespace ashes::D3D11_NAMESPACE
 		{
 			deallocateNA( physicalDevice );
 		}
-		
+
 		for ( auto & info : m_adapters )
 		{
 			safeRelease( info.output );

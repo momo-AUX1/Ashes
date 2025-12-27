@@ -4599,9 +4599,6 @@ namespace ashes::D3D11_NAMESPACE
 #if VK_KHR_surface
 		VkExtensionProperties{ VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION },
 #endif
-#if VK_KHR_swapchain
-		VkExtensionProperties{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
-#endif
 #if VK_KHR_win32_surface
 		VkExtensionProperties{ VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_SPEC_VERSION },
 #endif
@@ -4666,16 +4663,17 @@ namespace ashes::D3D11_NAMESPACE
 			if ( result == VK_ERROR_INITIALIZATION_FAILED )
 			{
 				description.getInstanceProcAddr = &vkGetInstanceProcAddr;
-				description.features =
-				{
-					true, // hasTexBufferRange
-					true, // hasImageTexture
-					true, // hasBaseInstance
-					true, // hasClearTexImage
-					true, // hasComputeShaders
-					false, // hasStorageBuffers
-					true, // supportsPersistentMapping
-				};
+				auto featureLevel = getSupportedFeatureLevel();
+				auto supports11 = featureLevel >= D3D_FEATURE_LEVEL_11_0;
+				description.features = {};
+				description.features.hasTexBufferRange = supports11;
+				description.features.hasImageTexture = supports11;
+				description.features.hasBaseInstance = supports11;
+				description.features.hasClearTexImage = supports11;
+				description.features.hasComputeShaders = supports11;
+				description.features.hasStorageBuffers = supports11;
+				description.features.supportsPersistentMapping = false;
+				description.features.maxShaderLanguageVersion = 0u;
 #define VK_LIB_GLOBAL_FUNCTION( v, x )\
 				description.functions.x = vk##x;
 #define VK_LIB_INSTANCE_FUNCTION( v, x )\
@@ -4693,7 +4691,7 @@ namespace ashes::D3D11_NAMESPACE
 
 				description.mode = mode;
 				description.support.priority = 6u;
-				description.support.supported = VkBool32( getSupportedFeatureLevel() >= D3D_FEATURE_LEVEL_11_1
+				description.support.supported = VkBool32( featureLevel >= D3D_FEATURE_LEVEL_11_1
 					? VK_TRUE
 					: VK_FALSE );
 			}

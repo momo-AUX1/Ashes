@@ -84,6 +84,16 @@ namespace utils
 				}
 			}
 
+			if ( computeQueueFamilyIndex == std::numeric_limits< uint32_t >::max() )
+			{
+#if defined( __APPLE__ )
+				if ( graphicsQueueFamilyIndex != std::numeric_limits< uint32_t >::max() )
+				{
+					computeQueueFamilyIndex = graphicsQueueFamilyIndex;
+				}
+#endif
+			}
+
 			// Si on n'en a pas trouvé, on génère une erreur.
 			if ( graphicsQueueFamilyIndex == std::numeric_limits< uint32_t >::max()
 				|| presentQueueFamilyIndex == std::numeric_limits< uint32_t >::max()

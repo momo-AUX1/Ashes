@@ -382,7 +382,7 @@ namespace ashes::D3D11_NAMESPACE
 		{
 			return m_win32CreateInfo.hwnd;
 		}
-		
+
 #if !defined( Ashes_D3D11_XBox )
 		if ( isDisplay() )
 		{
@@ -393,7 +393,7 @@ namespace ashes::D3D11_NAMESPACE
 
 		return nullptr;
 	}
-	
+
 #if !defined( Ashes_D3D11_XBox )
 	DXGI_MODE_DESC const & SurfaceKHR::getDisplayMode()const
 	{
